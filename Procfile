@@ -1,1 +1,1 @@
-web: gunicorn app:yelpAI
+web: gunicorn yelpAI:app
