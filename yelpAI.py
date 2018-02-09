@@ -41,12 +41,15 @@ def find_places_to_eat(query):
         return {}
     else:
         city = query["parameters"]["geo-city"]
+        if not city:
+            return {}
         payload = {'location': city,
                    'radius': 8000,
                    'categories': 'food',
                    'sort_by': 'rating',
                    'limit': 10}
         response = business_search(payload)
+        print(response)
         if response:
             speech_str = "The top ten place to eat in " + city + " are: "
             businesses = response['businesses']
@@ -56,6 +59,7 @@ def find_places_to_eat(query):
             return make_speech_response(speech_str)
         else:
             return {}
+
 
 def make_speech_response(speech_str):
     return {
