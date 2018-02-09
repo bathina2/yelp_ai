@@ -18,29 +18,21 @@ def webhook():
 
     res = process_request(req)
     res = json.dumps(res, indent=4)
+    print(res)
     r = make_response(res)
     r.headers['Content-Type'] = 'application/json'
     return r
 
 def process_request(req):
-    if 'result' not in req:
-        return {}
-    result = req['result']
-
-    if 'action' not in result:
-        return {}
-
-    if result['action'] == "find-places-to-eat":
-        return find_places_to_eat(result)
+    if req.get("result").get("action") == "find-places-to-eat":
+        return find_places_to_eat(req)
     else:
         return {}
 
 
-def find_places_to_eat(query):
-    if "parameters" not in query and "geo-city" not in query["parameters"]:
-        return {}
-    else:
-        city = query["parameters"]["geo-city"]
+def find_places_to_eat(req):
+    city = req.get("result").get("parameters").get("geo-city")
+    if city:
         if not city:
             return {}
         payload = {'location': city,
@@ -49,16 +41,18 @@ def find_places_to_eat(query):
                    'sort_by': 'rating',
                    'limit': 10}
         response = business_search(payload)
-        print(response)
+        #print(response)
         if response:
             speech_str = "The top ten place to eat in " + city + " are: "
-            businesses = response['businesses']
+            businesses = response.get('businesses')
             for business in businesses:
                 speech_str = speech_str + " " + business['name'] + ","
             speech_str = speech_str[:-1]
             return make_speech_response(speech_str)
         else:
             return {}
+    else:
+        return {}
 
 
 def make_speech_response(speech_str):
@@ -75,7 +69,7 @@ def business_search(payload):
     if r.status_code != 200:
         return {}
     else:
-        return r.json
+        return r.json()
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 5000))
